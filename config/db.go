@@ -21,7 +21,7 @@ func DBInit() {
 	}
 
 	// Auto-migrate models -> creates the tables in the database
-	err = DB.AutoMigrate(&models.Note{}, &models.Notebook{})
+	err = DB.AutoMigrate(&models.Note{}, &models.Notebook{}, &models.User{})
 	if err != nil {
 		log.Fatalf("Failed to migrate models: %v", err)
 	}
