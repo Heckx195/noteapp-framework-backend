@@ -1,27 +1,30 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"noteapp-framework-backend/config"
 	"noteapp-framework-backend/handlers"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// Initialize the database
 	config.DBInit()
 
-	// Create a new note
-	err := handlers.CreateNote("My First Note", "This is the content of the note", 1)
-	if err != nil {
-		log.Fatalf("Failed to create note: %v", err)
-	}
-	fmt.Println("Note created successfully!")
+	r := gin.Default()
 
-	// Fetch all notes
-	notes, err := handlers.GetNotes()
-	if err != nil {
-		log.Fatalf("Failed to fetch notes: %v", err)
-	}
-	fmt.Printf("Notes: %+v\n", notes)
+	// Note Routes
+	r.POST("/notes", handlers.CreateNote)
+	r.GET("/notes", handlers.GetNotes)
+	r.GET("/notes/:id", handlers.GetNote)
+	r.PUT("/notes/:id", handlers.UpdateNote)
+	r.DELETE("/notes/:id", handlers.DeleteNote)
+
+	// Notebook Routes
+	r.POST("/notebooks", handlers.CreateNotebook)
+	r.GET("/notebooks", handlers.GetNotebooks)
+	r.GET("/notebooks/:id", handlers.GetNotebook)
+	r.PUT("/notebooks/:id", handlers.UpdateNotebook)
+	r.DELETE("/notebooks/:id", handlers.DeleteNotebook)
+
+	r.Run(":8080")
 }
