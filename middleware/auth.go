@@ -1,8 +1,11 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
+
+	"noteapp-framework-backend/config"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -26,7 +29,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		tokenString := bearerToken[1]
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return []byte("your_jwt_secret"), nil // Replace with your secret key
+			return []byte(config.GetJWTSecret()), nil
 		})
 
 		if err != nil || !token.Valid {
@@ -42,8 +45,20 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		userID, ok := claims["user_id"].(string)
+		if !ok {
+			// Try to read user_id as float64 and convert it to string
+			if userIDFloat, ok := claims["user_id"].(float64); ok {
+				userID = fmt.Sprintf("%.0f", userIDFloat) // Convert float64 to string
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID in token"})
+				c.Abort()
+				return
+			}
+		}
+
 		// Add user ID to context
-		c.Set("user_id", claims["user_id"])
+		c.Set("user_id", userID)
 		c.Next()
 	}
 }
