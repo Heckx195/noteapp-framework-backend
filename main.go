@@ -50,6 +50,7 @@ func main() {
 		protected.PUT("/notebooks/:id", handlers.UpdateNotebook)
 		protected.DELETE("/notebooks/:id", handlers.DeleteNotebook)
 		protected.GET("/notebookscount/:id", handlers.GetNotebookCount)
+		protected.GET("/notebookname/:id", handlers.GetNotebookName)
 
 		// Note Routes
 		protected.POST("/notes", handlers.CreateNote)
@@ -67,7 +68,7 @@ func main() {
 		// TODO: golang migration -> remove AutoMigration
 
 		// TODO: Fix random order of notes because of id 		-- checked
-		// TODO: Implement pagenation
+		// TODO: Implement pagenation							-- checked
 
 		// TODO: Delete function Note frontend					-- checked
 		// TODO: Delete function Note backend 					-- checked

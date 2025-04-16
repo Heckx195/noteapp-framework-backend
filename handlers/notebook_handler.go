@@ -171,5 +171,23 @@ func GetNotebookCount(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"note_count": noteCount})
+}
 
+func GetNotebookName(c *gin.Context) {
+	// Retrieve user ID from the context
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+		return
+	}
+
+	notebookID := c.Param("id")
+
+	var notebook models.Notebook
+	if err := config.DB.Where("id = ? AND user_id = ?", notebookID, userID).First(&notebook).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Notebook not found or access denied"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"notebook_name": notebook.Name})
 }

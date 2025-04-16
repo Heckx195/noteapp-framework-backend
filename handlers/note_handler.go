@@ -24,9 +24,6 @@ func CreateNote(c *gin.Context) {
 		return
 	}
 
-	// Log the input for debugging
-	fmt.Printf("Received input: %+v\n", input)
-
 	// Create a new note
 	note := models.Note{
 		Title:      input.Title,
@@ -193,10 +190,12 @@ func GetNotesWithPagination(c *gin.Context) {
 	var notes []models.Note
 	var total int64
 
-	// Get total count of books
-	config.DB.Model(&models.Note{}).Count(&total)
+	// Get total count of notes
+	config.DB.Model(&models.Note{}).
+		Where("notebook_id = ? AND user_id = ?", notebookID, userID).
+		Count(&total)
 
-	// Get books with pagination, without loading relationships
+	// Get notes with pagination, without loading relationships
 	result := config.DB.Model(&models.Note{}).
 		Where("notebook_id = ? AND user_id = ?", notebookID, userID).
 		Limit(limitInt).
