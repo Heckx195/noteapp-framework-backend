@@ -54,10 +54,10 @@ func main() {
 		// Note Routes
 		protected.POST("/notes", handlers.CreateNote)
 		protected.GET("/notes/:notebookid", handlers.GetNotes)
+		protected.GET("/notes/:notebookid/pagination", handlers.GetNotesWithPagination)
 		protected.GET("/notebyid/:notebookid/:noteid", handlers.GetNote) // postman // checked
 		protected.PUT("/notes/:id", handlers.UpdateNote)
-		protected.DELETE("/notes/:id", handlers.DeleteNote)                   // postman // checked
-		protected.GET("/notes/:page/:limit", handlers.GetNotesWithPagination) // postman
+		protected.DELETE("/notes/:id", handlers.DeleteNote) // postman // checked
 
 		// User Info Route
 		protected.GET("/me", handlers.GetUserInfo)

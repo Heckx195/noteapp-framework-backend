@@ -169,9 +169,19 @@ func DeleteNote(c *gin.Context) {
 }
 
 func GetNotesWithPagination(c *gin.Context) {
+	// Retrieve user ID from the context
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+		return
+	}
+
 	// Get page and limit from query parameters, set defaults if not provided
+	notebookID := c.Param("notebookid")
 	page := c.DefaultQuery("page", "1")
 	limit := c.DefaultQuery("limit", "10")
+
+	fmt.Println("notebookid: ", notebookID, " // page: ", page, " // limit: ", limit)
 
 	// Convert string to integer
 	pageInt, _ := strconv.Atoi(page)
@@ -188,6 +198,7 @@ func GetNotesWithPagination(c *gin.Context) {
 
 	// Get books with pagination, without loading relationships
 	result := config.DB.Model(&models.Note{}).
+		Where("notebook_id = ? AND user_id = ?", notebookID, userID).
 		Limit(limitInt).
 		Offset(offset).
 		Find(&notes)
