@@ -46,19 +46,37 @@ func main() {
 		// Notebook Routes
 		protected.POST("/notebooks", handlers.CreateNotebook)
 		protected.GET("/notebooks", handlers.GetNotebooks)
-		//protected.GET("/notebooks/:id", handlers.GetNotebook)
-		//protected.PUT("/notebooks/:id", handlers.UpdateNotebook)
-		//protected.DELETE("/notebooks/:id", handlers.DeleteNotebook)
+		protected.GET("/notebooks/:id", handlers.GetNotebook) // postman // checked
+		protected.PUT("/notebooks/:id", handlers.UpdateNotebook)
+		protected.DELETE("/notebooks/:id", handlers.DeleteNotebook)
+		protected.GET("/notebookscount/:id", handlers.GetNotebookCount)
 
 		// Note Routes
 		protected.POST("/notes", handlers.CreateNote)
-		protected.GET("/notes/:id", handlers.GetNotes)
-		//protected.GET("/notesbyid/:notebookid/:noteid", handlers.GetNote)
+		protected.GET("/notes/:notebookid", handlers.GetNotes)
+		protected.GET("/notebyid/:notebookid/:noteid", handlers.GetNote) // postman // checked
 		protected.PUT("/notes/:id", handlers.UpdateNote)
-		//protected.DELETE("/notes/:id", handlers.DeleteNote)
+		protected.DELETE("/notes/:id", handlers.DeleteNote)                   // postman // checked
+		protected.GET("/notes/:page/:limit", handlers.GetNotesWithPagination) // postman
 
 		// User Info Route
 		protected.GET("/me", handlers.GetUserInfo)
+
+		// TODO: Further 10 endpoints (in total 20)
+		// TODO: 10 unit tests for 10 endpoints
+		// TODO: golang migration -> remove AutoMigration
+
+		// TODO: Fix random order of notes because of id 		-- checked
+		// TODO: Implement pagenation
+
+		// TODO: Delete function Note frontend					-- checked
+		// TODO: Delete function Note backend 					-- checked
+
+		// TODO: Delete function Notebook frontend				-- checked
+		// TODO: Delete function Notebook backend 				-- checked
+
+		// TODO: Update name function Notebook frontend
+		// TODO: Update name function Notebook backend			-- checked
 	}
 
 	r.Run(":8080")

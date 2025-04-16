@@ -133,6 +133,12 @@ func DeleteNotebook(c *gin.Context) {
 		return
 	}
 
+	// Delete all notes associated with the notebook
+	if err := config.DB.Where("notebook_id = ?", id).Delete(&models.Note{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete associated notes"})
+		return
+	}
+
 	// Delete the notebook
 	if err := config.DB.Delete(&notebook).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete notebook"})
@@ -140,4 +146,30 @@ func DeleteNotebook(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Notebook deleted successfully"})
+}
+
+func GetNotebookCount(c *gin.Context) {
+	// Retrieve user ID from the context
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+		return
+	}
+
+	notebookID := c.Param("id")
+
+	var notebook models.Notebook
+	if err := config.DB.Where("id = ? AND user_id = ?", notebookID, userID).First(&notebook).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Notebook not found or access denied"})
+		return
+	}
+
+	var noteCount int64
+	if err := config.DB.Model(&models.Note{}).Where("notebook_id = ?", notebookID).Count(&noteCount).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count notes"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"note_count": noteCount})
+
 }

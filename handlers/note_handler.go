@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"noteapp-framework-backend/config"
 	"noteapp-framework-backend/models"
@@ -70,7 +71,7 @@ func GetNotes(c *gin.Context) {
 	}
 
 	var notes []models.Note
-	notebookID := c.Param("id")
+	notebookID := c.Param("notebookid")
 
 	if err := config.DB.Where("user_id = ? AND notebook_id = ?", userID, notebookID).Find(&notes).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notes"})
@@ -91,11 +92,15 @@ func GetNote(c *gin.Context) {
 		return
 	}
 
-	id := c.Param("id")
+	notebookID := c.Param("notebookid")
+	noteID := c.Param("noteid")
+	fmt.Println("notebookid:", notebookID)
+	fmt.Println("noteid:", noteID)
+
 	var note models.Note
 
 	// Fetch the note and ensure it belongs to the authenticated user
-	if err := config.DB.Where("id = ? AND user_id = ?", id, userID).First(&note).Error; err != nil {
+	if err := config.DB.Where("id = ? AND user_id = ? AND notebook_id = ?", noteID, userID, notebookID).First(&note).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Note not found"}) // TODO: Add "or access denied" to msg
 		return
 	}
@@ -161,4 +166,42 @@ func DeleteNote(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Note deleted successfully"})
+}
+
+func GetNotesWithPagination(c *gin.Context) {
+	// Get page and limit from query parameters, set defaults if not provided
+	page := c.DefaultQuery("page", "1")
+	limit := c.DefaultQuery("limit", "10")
+
+	// Convert string to integer
+	pageInt, _ := strconv.Atoi(page)
+	limitInt, _ := strconv.Atoi(limit)
+
+	// Calculate offset
+	offset := (pageInt - 1) * limitInt
+
+	var notes []models.Note
+	var total int64
+
+	// Get total count of books
+	config.DB.Model(&models.Note{}).Count(&total)
+
+	// Get books with pagination, without loading relationships
+	result := config.DB.Model(&models.Note{}).
+		Limit(limitInt).
+		Offset(offset).
+		Find(&notes)
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notes"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":       notes,
+		"total":      total,
+		"page":       pageInt,
+		"limit":      limitInt,
+		"totalPages": int(math.Ceil(float64(total) / float64(limitInt))),
+	})
 }
