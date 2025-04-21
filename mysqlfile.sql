@@ -1,9 +1,3 @@
--- View all notebooks
-
-SELECT *
-FROM notebooks;
-
--- View all notes
-
-SELECT *
-FROM notes;
+SELECT username
+FROM users
+GROUP BY username

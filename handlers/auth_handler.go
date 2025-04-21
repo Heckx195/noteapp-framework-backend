@@ -38,9 +38,13 @@ func Register(c *gin.Context) {
 	user.Password = string(hashedPassword)
 
 	// Create user
-	result := config.DB.Create(&user)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+	if err := config.DB.Create(&user).Error; err != nil {
+		// Check for unique constraint violation
+		if isUniqueConstraintError(err) {
+			c.JSON(http.StatusConflict, gin.H{"error": "Username already exists"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		}
 		return
 	}
 
@@ -173,14 +177,51 @@ func RefreshToken(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-	// Clear the access_token cookie
 	c.SetCookie("access_token", "", -1, "/", "localhost", false, true)
-
-	// Clear the refresh_token cookie
 	c.SetCookie("refresh_token", "", -1, "/", "localhost", false, false)
 
-	// Respond with a success message
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Logged out successfully",
 	})
+}
+
+func ChangeUsername(c *gin.Context) {
+	var request struct {
+		NewUsername string `json:"new_username"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+		return
+	}
+
+	user, err := FindUserByID(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user"})
+		return
+	}
+
+	user.Username = request.NewUsername
+	if err := config.DB.Save(user).Error; err != nil {
+		// Check for unique constraint violation
+		if isUniqueConstraintError(err) {
+			c.JSON(http.StatusConflict, gin.H{"error": "Username already exists"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update username"})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Username updated successfully"})
+}
+
+// Private helper functions.
+func isUniqueConstraintError(err error) bool {
+	return err != nil && err.Error() == `ERROR: duplicate key value violates unique constraint "uni_users_username" (SQLSTATE 23505)`
 }
