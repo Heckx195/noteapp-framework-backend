@@ -1,3 +1,1 @@
-SELECT username
-FROM users
-GROUP BY username
+DROP DATABASE mydatabase;

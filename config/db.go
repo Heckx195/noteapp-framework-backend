@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"log"
-	"noteapp-framework-backend/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -18,12 +17,6 @@ func DBInit() {
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to PostgreSQL: %v", err)
-	}
-
-	// Auto-migrate models -> creates the tables in the database
-	err = DB.AutoMigrate(&models.Note{}, &models.Notebook{}, &models.User{})
-	if err != nil {
-		log.Fatalf("Failed to migrate models: %v", err)
 	}
 
 	fmt.Println("Connected to PostgreSQL and migrated models!")
