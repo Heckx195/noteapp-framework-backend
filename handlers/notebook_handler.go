@@ -148,7 +148,7 @@ func DeleteNotebook(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Notebook deleted successfully"})
 }
 
-func GetNotebookCount(c *gin.Context) {
+func GetNoteCount(c *gin.Context) {
 	// Retrieve user ID from the context
 	userID, exists := c.Get("user_id")
 	if !exists {
@@ -156,7 +156,7 @@ func GetNotebookCount(c *gin.Context) {
 		return
 	}
 
-	notebookID := c.Param("id")
+	notebookID := c.Param("notebookid")
 
 	var notebook models.Notebook
 	if err := config.DB.Where("id = ? AND user_id = ?", notebookID, userID).First(&notebook).Error; err != nil {
@@ -171,6 +171,23 @@ func GetNotebookCount(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"note_count": noteCount})
+}
+
+func GetNotebookCount(c *gin.Context) {
+	// Retrieve user ID from the context
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+		return
+	}
+
+	var notebookCount int64
+	if err := config.DB.Model(&models.Notebook{}).Where("user_id = ?", userID).Count(&notebookCount).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count notebooks"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"notebook_count": notebookCount})
 }
 
 func GetNotebookName(c *gin.Context) {

@@ -1,1 +1,1 @@
-DROP DATABASE mydatabase;
+SELECT * FROM users;

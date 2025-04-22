@@ -21,3 +21,6 @@ func DBInit() {
 
 	fmt.Println("Connected to PostgreSQL and migrated models!")
 }
+
+// Info:
+// migrate -path db/migrations -database "postgres://user:password@localhost:5432/mydatabase?sslmode=disable" up

@@ -49,7 +49,8 @@ func main() {
 		protected.GET("/notebooks/:id", handlers.GetNotebook)
 		protected.PUT("/notebooks/:id", handlers.UpdateNotebook)
 		protected.DELETE("/notebooks/:id", handlers.DeleteNotebook)
-		protected.GET("/notebookscount/:id", handlers.GetNotebookCount)
+		protected.GET("/notebookscount/", handlers.GetNotebookCount)
+		protected.GET("/notescount/:notebookid", handlers.GetNoteCount)
 		protected.GET("/notebookname/:id", handlers.GetNotebookName)
 
 		// Note Routes

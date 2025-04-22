@@ -7,6 +7,7 @@ import (
 	"noteapp-framework-backend/models"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // GetUserInfo handles the /me route
@@ -21,6 +22,13 @@ func GetUserInfo(c *gin.Context) {
 	// Fetch user from the database
 	user, err := FindUserByID(userID.(string))
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// If the user doesn't exist, clear the invalid user_id from the context
+			c.Set("user_id", nil)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+			return
+		}
+		// Handle other database errors
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user"})
 		return
 	}
