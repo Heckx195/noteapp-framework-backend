@@ -100,11 +100,15 @@ func UpdateNotebook(c *gin.Context) {
 		return
 	}
 
-	// Bind the updated data
-	if err := c.ShouldBindJSON(&notebook); err != nil {
+	// Bind the updated data (but keep the original user_id)
+	var updatedData models.Notebook
+	if err := c.ShouldBindJSON(&updatedData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	// Update only the fields that are allowed to change
+	notebook.Name = updatedData.Name
 
 	// Save the updated notebook
 	if err := config.DB.Save(&notebook).Error; err != nil {

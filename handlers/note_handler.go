@@ -57,8 +57,6 @@ func CreateNote(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"data": note})
 }
 
-// DELETE: me not necessary to load their contents for the list
-// TODO: Create new GetNotes where only a list is sent
 // GetNotes retrieves all notes
 func GetNotes(c *gin.Context) {
 	userID, exists := c.Get("user_id")
