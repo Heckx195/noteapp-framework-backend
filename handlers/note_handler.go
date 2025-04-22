@@ -91,8 +91,6 @@ func GetNote(c *gin.Context) {
 
 	notebookID := c.Param("notebookid")
 	noteID := c.Param("noteid")
-	fmt.Println("notebookid:", notebookID)
-	fmt.Println("noteid:", noteID)
 
 	var note models.Note
 
