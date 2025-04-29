@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"net/http"
-	"noteapp-framework-backend/config"
-	"noteapp-framework-backend/models"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-resty/resty/v2"
+
+	"noteapp-framework-backend/config"
+	"noteapp-framework-backend/models"
 )
 
 // CreateNotebook creates a new notebook
@@ -211,4 +213,50 @@ func GetNotebookName(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"notebook_name": notebook.Name})
+}
+
+// ExportNotebook forwards the export request to the export-service
+func ExportNotebook(c *gin.Context) {
+	notebookID := c.Param("id")
+
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+		return
+	}
+
+	// Fetch the notebook from the database
+	var notebook models.Notebook
+	if err := config.DB.Where("id = ? AND user_id = ?", notebookID, userID).First(&notebook).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Notebook not found or access denied"})
+		return
+	}
+
+	// Fetch the notes associated with the notebook
+	var notes []models.Note
+	if err := config.DB.Where("notebook_id = ?", notebookID).Find(&notes).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notes for the notebook"})
+		return
+	}
+
+	// Prepare the request body for the export-service
+	requestBody := map[string]interface{}{
+		"notebook_name": notebook.Name,
+		"notes":         notes,
+	}
+
+	// Call the export-service
+	client := resty.New()
+	resp, err := client.R().
+		SetBody(requestBody).
+		SetHeader("Content-Type", "application/json").
+		Post("http://localhost:8081/export/notebook")
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to export notebook"})
+		return
+	}
+
+	// Forward the response from the export-service
+	c.Data(resp.StatusCode(), resp.Header().Get("Content-Type"), resp.Body())
 }

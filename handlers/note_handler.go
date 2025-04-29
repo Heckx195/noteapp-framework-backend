@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"noteapp-framework-backend/config"
-	"noteapp-framework-backend/models"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-resty/resty/v2"
+
+	"noteapp-framework-backend/config"
+	"noteapp-framework-backend/models"
 )
 
 // CreateNote creates a new note
@@ -210,4 +212,41 @@ func GetNotesWithPagination(c *gin.Context) {
 		"limit":      limitInt,
 		"totalPages": int(math.Ceil(float64(total) / float64(limitInt))),
 	})
+}
+
+// ExportNote forwards the export request to the export-service
+func ExportNote(c *gin.Context) {
+	noteID := c.Param("id")
+
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+		return
+	}
+
+	var note models.Note
+	if err := config.DB.Where("id = ? AND user_id = ?", noteID, userID).First(&note).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Note not found or access denied"})
+		return
+	}
+
+	requestBody := map[string]interface{}{
+		"title":   note.Title,
+		"content": note.Content,
+	}
+
+	// Call the export-service
+	client := resty.New()
+	resp, err := client.R().
+		SetBody(requestBody).
+		SetHeader("Content-Type", "application/json").
+		Post("http://localhost:8081/export/note")
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to export note"})
+		return
+	}
+
+	// Forward the response from the export-service
+	c.Data(resp.StatusCode(), resp.Header().Get("Content-Type"), resp.Body())
 }

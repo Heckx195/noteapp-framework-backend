@@ -52,6 +52,7 @@ func main() {
 		protected.GET("/notebookscount/", handlers.GetNotebookCount)
 		protected.GET("/notescount/:notebookid", handlers.GetNoteCount)
 		protected.GET("/notebookname/:id", handlers.GetNotebookName)
+		protected.POST("/notebooks/:id/export", handlers.ExportNotebook)
 
 		// Note Routes
 		protected.POST("/notes", handlers.CreateNote)
@@ -60,11 +61,11 @@ func main() {
 		protected.GET("/notebyid/:notebookid/:noteid", handlers.GetNote)
 		protected.PUT("/notes/:id", handlers.UpdateNote)
 		protected.DELETE("/notes/:id", handlers.DeleteNote)
+		protected.POST("/notes/:id/export", handlers.ExportNote)
 
 		// User Info Route
 		protected.GET("/me", handlers.GetUserInfo)
 		protected.POST("/changeusername", handlers.ChangeUsername)
-
 	}
 
 	r.Run(":8080")
