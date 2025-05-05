@@ -41,7 +41,7 @@ func DBInit() {
 		log.Fatalf("Failed to connect to PostgreSQL: %v", err)
 	}
 
-	fmt.Println("Connected to PostgreSQL and migrated models!")
+	fmt.Println("Connected to PostgreSQL with dsn=", dsn)
 }
 
 // Info:
